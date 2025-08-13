@@ -52,8 +52,8 @@ if contours:
     cv2.circle(highlighted_image, center, radius, (0, 255, 0), 3)  # thickness=3
 
     # Save and show the results
-    cv2.imwrite("retina_images/optic_disc_segmented_circle.jpeg", optic_disc_segment)
-    cv2.imwrite("retina_images/optic_disc_highlighted_original.jpeg", highlighted_image)
+    # cv2.imwrite("retina_images/optic_disc_segmented_circle.jpeg", optic_disc_segment)
+    # cv2.imwrite("retina_images/optic_disc_highlighted_original.jpeg", highlighted_image)
 
     cv2.imshow("Optic Disc Highlighted on Original", highlighted_image)
     cv2.imshow("Segmented Optic Disc (Circle)", optic_disc_segment)
