@@ -1,25 +1,33 @@
 import cv2
 import numpy as np
+import os
+
+def show_resized(window_name, img, scale=0.5):
+    height, width = img.shape[:2]
+    resized = cv2.resize(img, (int(width*scale), int(height*scale)))
+    cv2.imshow(window_name, resized)
+
 
 def segment_optic_disk(image):
     if image is None:
         print("Error: Could not load image")
         exit()
     
-    # Convert to grayscale
-    gray = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
+    # Extract green channel
+    green_channel = image[:, :, 1]
     
-    cv2.imshow("Gray",gray)
+    #cv2.imshow("Green Channel",green_channel)
 
     
     # Apply CLAHE
     clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
-    enhanced = clahe.apply(gray)
-    blurred = cv2.medianBlur(gray, 15)
-    cv2.imshow("Blurred",blurred)
+    enhanced = clahe.apply(green_channel)
+    # cv2.imshow("Enhanced", enhanced)
+    blurred = cv2.medianBlur(enhanced, 15)
+    show_resized("Blurred-Median", blurred, scale=0.5)
     
     # Thresholding
-    _, thresh = cv2.threshold(blurred, 180, 255, cv2.THRESH_BINARY)
+    _, thresh = cv2.threshold(blurred, 160, 255, cv2.THRESH_BINARY)
     
     # Morphological operations
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (15, 15))
@@ -33,7 +41,7 @@ def segment_optic_disk(image):
         (x, y), radius = cv2.minEnclosingCircle(largest_contour)
         center, radius = (int(x), int(y)), int(radius * 0.9)
         
-        mask = np.zeros_like(gray)
+        mask = np.zeros_like(green_channel)
         cv2.circle(mask, center, radius, 255, -1)
         
         optic_disc_segment = cv2.bitwise_and(image, image, mask=mask)
@@ -51,3 +59,16 @@ def segment_optic_disk(image):
                     cv2.FONT_HERSHEY_SIMPLEX, 1, (0, 0, 255), 2)
     
     return highlighted_image, optic_disc_segment
+
+if __name__ == "__main__":
+    image_filename = "retina-8.jpg"
+    image_path = os.path.join("dataset", image_filename)
+
+    image = cv2.imread(image_path)
+
+    highlighted, segmented = segment_optic_disk(image)
+
+    cv2.imshow("Highlighted Image", highlighted)
+    cv2.imshow("Optic Disc Segment", segmented)
+    cv2.waitKey(0)
+    cv2.destroyAllWindows()
